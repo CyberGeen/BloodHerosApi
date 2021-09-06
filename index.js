@@ -20,6 +20,9 @@ app.use(express.json());
 //-----------users Router-------------------
 const userRouter = require('./routers/user')
 app.use('/user' , userRouter)
+//-----------posts Router-------------------
+const postRouter = require('./routers/post')
+app.use('/post' , postRouter)
 
 
 //temp state 

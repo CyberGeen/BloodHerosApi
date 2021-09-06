@@ -1,5 +1,5 @@
 //requirement
-const { required } = require('joi');
+const { required, array } = require('joi');
 const mongoose = require('mongoose')
 require('mongoose-type-email');
 
@@ -73,8 +73,10 @@ const userSchema = new mongoose.Schema({
     } ,
     emergency_info: {
         type: ErInfo
-    }  
-
+    } ,
+    posts: [{
+        type:String
+    }]
 })
 
 //export 
