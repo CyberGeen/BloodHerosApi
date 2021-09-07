@@ -2,6 +2,8 @@
 const { required, array } = require('joi');
 const mongoose = require('mongoose')
 require('mongoose-type-email');
+const jwt = require('jsonwebtoken')
+require('dotenv').config();
 
 //----------------Schema--------
 //email Schema 
@@ -76,8 +78,16 @@ const userSchema = new mongoose.Schema({
     } ,
     posts: [{
         type:String
-    }]
+    }] ,
+    role: {
+        type: String ,
+        enum: ['admin' , 'doc' , null] ,
+        default: null
+    }
 })
+userSchema.methods.genAuthToken = function() {
+    return token = jwt.sign({_id: this._id , role: this.role} , process.env.JWT_KEY )
+}
 
 //export 
 module.exports = mongoose.model('User', userSchema);

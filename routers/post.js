@@ -4,11 +4,14 @@ const router = express.Router()
 const Post = require('../schema/mongooseSchemas/postSchema')
 const postJoiSchema = require('../schema/joiSchemas/postJoiSchema')
 const commentSchema = require('../schema/joiSchemas/commentJoiSchema')
+const auth = require('../middleware/auth')
+const isOwner = require('../middleware/isOwner')
+const isPostOwner = require('../middleware/isPostOwner')
 
 //routes
 //------------post related section-----
 //-----------create a post-------------
-router.post('/create', async(req , res) => {
+router.post('/create', auth , async(req , res) => {
     try{
         let validate = postJoiSchema.validate(req.body)
         if(validate.error){
@@ -18,6 +21,7 @@ router.post('/create', async(req , res) => {
         
         //creating post
         const post = new Post(validate.value)
+        post.posted_by=req.user._id
         const newPost = await post.save()
         res.status(201).send(newPost)
     }
@@ -26,7 +30,7 @@ router.post('/create', async(req , res) => {
     }
 })
 //---------------get a post----------------
-router.get('/:id', async(req , res) => {
+router.get('/:id', auth , async(req , res) => {
     try{
         const post = await Post.findById(req.params.id)
         if(!post){
@@ -42,7 +46,7 @@ router.get('/:id', async(req , res) => {
 })
 
 //---------------get all posts------------- (hold/advanced searching)
-router.get('/', async(req , res) => {
+router.get('/', auth , async(req , res) => {
     try{
         const allPosts = Post.find()
         res.status(200).send(allPosts)
@@ -53,7 +57,7 @@ router.get('/', async(req , res) => {
 })
 
 //---------------delete a post-------------
-router.delete('/:id', async(req , res) => {
+router.delete('/:id', [auth , isPostOwner] , async(req , res) => {
     try{
         //verification
         //deleting
@@ -65,27 +69,23 @@ router.delete('/:id', async(req , res) => {
     }
 })
 //---------------update a post-------------
-router.put('/:id/update', async(req , res) => {
+router.put('/:id/update', [auth , isPostOwner] , async(req , res) => {
     try{
         let validate = postJoiSchema.validate(req.body)
         if(validate.error){
             return res.status(400).send(validate.error.details)
         }
-        //find post
-        let post = await Post.findByIdAndUpdate(req.params.id , req.body)
-        console.log(req.body)
-        //verify stuff
-        
         //updating post
-        
-        
-        res.status(201).send(post)
+        const post = await Post.findByIdAndUpdate(req.params.id , req.body)
+        res.status(201).json({"message":"post updated succesfully"})
     }
     catch(err){
         res.status(500).json({message: err.message})
     }
 })
 
+
+//----------------comment section-------------------
 //---------------add a comment-------------
 router.post('/:id/comment', async(req , res) => {
     try{
