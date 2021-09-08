@@ -1,7 +1,5 @@
 //requirement
-const { required, array } = require('joi');
 const mongoose = require('mongoose')
-const User = require("./userSchema");
 
 //Schema 
 const postSchema = new mongoose.Schema({
@@ -20,18 +18,20 @@ const postSchema = new mongoose.Schema({
     } ,
     tags:{
         type:String ,
-        enum: ['urgent' , 'other']
+        enum: ['urgent' , 'other'] ,
+        default: 'other'
     } ,
     image: {
         type:String
     } ,
     posted_by: {
-        type:String
+        type:String ,
+        required:true
     } ,
     comments: [{
-        content:{type:String , required:true} ,
+        content:{type:String , required:true , unique:true} ,
         postedBy: {type:String , required:true} ,
-        date: {type:Date , default:Date.now}
+        date: {type:Date , default:Date.now} ,
     }] ,
     up_votes: {
         type:Array

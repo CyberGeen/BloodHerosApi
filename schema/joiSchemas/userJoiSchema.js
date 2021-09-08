@@ -7,7 +7,7 @@ const userSchema = Joi.object({
     password: Joi.string().min(5).required() ,
     email: Joi.string().required().email() ,
     gender: Joi.string().required() ,
-    adress: Joi.string(),
+    adress: Joi.number().min(1) ,
     blood_type: Joi.string(),
     last_donation: Joi.date(),
     emergency_info: {

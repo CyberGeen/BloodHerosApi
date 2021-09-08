@@ -5,11 +5,11 @@ const Post = require('../schema/mongooseSchemas/postSchema')
 const postJoiSchema = require('../schema/joiSchemas/postJoiSchema')
 const commentSchema = require('../schema/joiSchemas/commentJoiSchema')
 const auth = require('../middleware/auth')
-const isOwner = require('../middleware/isOwner')
 const isPostOwner = require('../middleware/isPostOwner')
+const isCommentOwner = require('../middleware/isCommentOwner')
 
 //routes
-//------------post related section-----
+//------------post related section----- ->create->update->delete->getOne->getAll
 //-----------create a post-------------
 router.post('/create', auth , async(req , res) => {
     try{
@@ -23,6 +23,22 @@ router.post('/create', auth , async(req , res) => {
         const post = new Post(validate.value)
         post.posted_by=req.user._id
         const newPost = await post.save()
+        res.status(201).send(newPost)
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+})
+//-----------update a post-------------
+router.put('/:id', [auth , isPostOwner] , async(req , res) => {
+    try{
+        req.body.posted_by = req.user._id
+        let validate = postJoiSchema.validate(req.body)
+        if(validate.error){
+            return res.status(400).send(validate.error.details)
+        }
+        //updating post 
+        const newPost = await Post.findByIdAndUpdate(req.params.id , req.body , {returnOriginal:false})
         res.status(201).send(newPost)
     }
     catch(err){
@@ -69,15 +85,15 @@ router.delete('/:id', [auth , isPostOwner] , async(req , res) => {
     }
 })
 //---------------update a post-------------
-router.put('/:id/update', [auth , isPostOwner] , async(req , res) => {
+router.put('/:id', [auth , isPostOwner] , async(req , res) => {
     try{
         let validate = postJoiSchema.validate(req.body)
         if(validate.error){
             return res.status(400).send(validate.error.details)
         }
         //updating post
-        const post = await Post.findByIdAndUpdate(req.params.id , req.body)
-        res.status(201).json({"message":"post updated succesfully"})
+        const post = await Post.findByIdAndUpdate(req.params.id , req.body , {returnOriginal: false})
+        res.status(201).json(post)
     }
     catch(err){
         res.status(500).json({message: err.message})
@@ -85,27 +101,51 @@ router.put('/:id/update', [auth , isPostOwner] , async(req , res) => {
 })
 
 
-//----------------comment section-------------------
+//----------------comment section------------------- ->create->update->delete
 //---------------add a comment-------------
-router.post('/:id/comment', async(req , res) => {
+router.post('/:id/comment', [auth ] , async(req , res) => {
     try{
         const validate = commentSchema.validate(req.body);
         if (validate.error) return res.status(400).send(validate.error.details)
-        //does post exists ? 
-        const post = await Post.findById(req.params.id)
-        if(!post) return res.status(400).json({error:"post doesnt excist"})
-        //verification
-
+        //add posted by section
+        req.body.postedBy = req.user._id
         //pushing a comment
-        const newComment = await Post.findByIdAndUpdate(req.params.id , {$push: {comments:req.body}})
+        const newComment = await Post.findByIdAndUpdate(req.params.id , {$push: {comments:req.body}} , {returnOriginal: false} )
         res.send(newComment)
-
     }
     catch(err){
         res.status(500).json({message: err.message})
     }
 })
 //-----------------updating a comment------ //once ownership setteled
+router.put('/:id/comment/:commentId', [auth , isCommentOwner] , async(req , res) => {
+    try{
+        //checking schema
+        const validate = commentSchema.validate(req.body);
+        if (validate.error) return res.status(400).send(validate.error.details)
+        //preventing the id from changing "set is distructive"
+        req.body._id = req.params.commentId
+        //updating
+        const newComment = await Post.findOneAndUpdate({"comments._id":req.params.commentId} , {$set: {"comments.$":req.body}} , {returnOriginal: false})
+        //const updatedPost = await Post.findById(req.params.id)
+        res.send(newComment)
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+})
+//----------------deleting comment---------
+router.delete('/:id/comment/:commentId', [auth , isCommentOwner] , async(req , res) => {
+    try{
+        //updating
+        const newComment = await Post.findOneAndUpdate({"comments._id":req.params.commentId} , {$pull: {"comments":{_id:req.params.commentId}}} , {returnOriginal: false})
+        //const updatedPost = await Post.findById(req.params.id)
+        res.send(newComment)
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+})
 //----------------upvote-------------------
 //----------------downvote-----------------
 

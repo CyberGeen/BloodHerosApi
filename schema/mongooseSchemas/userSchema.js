@@ -1,5 +1,4 @@
 //requirement
-const { required, array } = require('joi');
 const mongoose = require('mongoose')
 require('mongoose-type-email');
 const jwt = require('jsonwebtoken')
@@ -45,8 +44,7 @@ const userSchema = new mongoose.Schema({
     email: mongoose.SchemaTypes.Email ,
     verified: {
         type: Boolean ,
-        default: false ,
-        unique: true
+        default: false 
     } ,
     gender: {
         type: String ,
@@ -54,7 +52,7 @@ const userSchema = new mongoose.Schema({
         enum: ['male' , 'female']
     } ,
     adress: {
-        type: String 
+        type: Number 
     } ,
     browser_language: {
         type: String ,
