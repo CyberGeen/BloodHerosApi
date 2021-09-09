@@ -7,6 +7,9 @@ const commentSchema = require('../schema/joiSchemas/commentJoiSchema')
 const auth = require('../middleware/auth')
 const isPostOwner = require('../middleware/isPostOwner')
 const isCommentOwner = require('../middleware/isCommentOwner')
+const udHandler = require('../functions/udHandler')
+const User = require('../schema/mongooseSchemas/userSchema')
+const docAuth = require('../middleware/docAuth')
 
 //routes
 //------------post related section----- ->create->update->delete->getOne->getAll
@@ -17,8 +20,6 @@ router.post('/create', auth , async(req , res) => {
         if(validate.error){
             return res.status(400).send(validate.error.details)
         }
-        //verify stuff
-        
         //creating post
         const post = new Post(validate.value)
         post.posted_by=req.user._id
@@ -52,9 +53,19 @@ router.get('/:id', auth , async(req , res) => {
         if(!post){
             return res.status(400).send('post doesnt exist')
         }
-        //verification
-        //sending the post
-        res.send(post)
+        //set upvotes
+        
+        let newPost = udHandler(req.query.vote , post , req.user)
+        if(newPost === null) {
+            //sending the post
+            res.send(post)
+        } else {
+            //saving changes
+            newPost.ud_rate = newPost.handleUdRate()
+            newPost = await newPost.save();
+            res.send(newPost)
+        }
+        
     }
     catch(err){
         res.status(500).json({message: err.message})
@@ -99,6 +110,49 @@ router.put('/:id', [auth , isPostOwner] , async(req , res) => {
         res.status(500).json({message: err.message})
     }
 })
+//----------------------set a donator--------------------- ///change this to docs 
+router.put('/:id/donator/:dId', [auth , docAuth] ,  async(req , res) => {
+    try{
+        let donator = await User.findById(req.params.dId)
+        if(!donator) return res.status(400).json({"error":"user doesnt excist"})
+        let post = await Post.findById(req.params.id)
+        if(!post) return res.send(400).json({"error":"post doenst excist"})
+        if(post.donator) return res.status(400).json({"error":"donator already set"})
+        donator.last_donation= Date.now()
+        donator.score += 100 ;
+        donator = await donator.save() ;
+        console.log(typeof(req.params.dId))
+        post =await Post.findByIdAndUpdate(req.params.id , {donator:req.params.dId} , {returnOriginal: false})
+        res.status(201).send(post)
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+})
+
+//----------------------delete the donateur---------------
+router.delete('/:id/donator/:dId', [auth , docAuth] ,  async(req , res) => {
+    try{
+        let donator = await User.findById(req.params.dId)
+        if(!donator) return res.status(400).json({"error":"user doesnt excist"})
+        let post = await Post.findById(req.params.id)
+        if(!post) return res.send(400).json({"error":"post doenst excist"})
+        if(!post.donator) return res.status(400).json({"error":"there is no donator"})
+        donator.last_donation= null
+        donator.score -= 100 ;
+        donator = await donator.save() ;
+        console.log(typeof(req.params.dId))
+        post =await Post.findByIdAndUpdate(req.params.id , {donator:null} , {returnOriginal: false})
+        res.status(201).send(post)
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+})
+
+
+
+
 
 
 //----------------comment section------------------- ->create->update->delete
@@ -146,12 +200,8 @@ router.delete('/:id/comment/:commentId', [auth , isCommentOwner] , async(req , r
         res.status(500).json({message: err.message})
     }
 })
-//----------------upvote-------------------
-//----------------downvote-----------------
-
-
 //---------------post module---------------
-router.post('/', async(req , res) => {
+router.put('/', [auth , isPostOwner] , async(req , res) => {
     try{
 
     }

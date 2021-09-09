@@ -8,7 +8,7 @@ const postSchema = Joi.object({
     blood_type: Joi.string(),
     tags: Joi.string().valid('urgent' , 'other') ,
     image: Joi.string() ,
-    posted_by: Joi.string().required()
+    posted_by: Joi.string()
 })
 
 //export 

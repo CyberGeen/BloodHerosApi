@@ -1,5 +1,6 @@
 //requirement
 const mongoose = require('mongoose')
+const _ = require('lodash')
 
 //Schema 
 const postSchema = new mongoose.Schema({
@@ -35,7 +36,7 @@ const postSchema = new mongoose.Schema({
     }] ,
     up_votes: {
         type:Array
-    } ,
+    },
     down_votes: {
         type:Array
     } ,
@@ -45,8 +46,16 @@ const postSchema = new mongoose.Schema({
     date: {
         type: Date ,
         default:Date.now
+    } ,
+    donator: {
+        type:String
     }
 })
+
+//methods
+postSchema.methods.handleUdRate = function() {
+     return  _.size(this.up_votes) - _.size( this.down_votes)
+}
 
 //exports
 module.exports = mongoose.model('Posts' , postSchema );
