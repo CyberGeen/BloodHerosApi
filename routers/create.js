@@ -1,7 +1,7 @@
 //requirement
 const express = require('express')
 const router = express.Router()
-const isAdmin = require('../middleware/adminAuth')
+const isAdmin = require('../middleware/isAdmin')
 const auth = require('../middleware/auth')
 const Joi = require('joi')
 const User = require('../schema/mongooseSchemas/userSchema')

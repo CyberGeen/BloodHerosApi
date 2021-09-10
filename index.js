@@ -26,6 +26,9 @@ app.use('/post' , postRouter)
 //-----------create Router------------------
 const createRouter = require('./routers/create')
 app.use('/create' , createRouter)
+//------------reports Router---------------
+const reportRouter = require('./routers/reports')
+app.use('/reports' , reportRouter)
 
 
 //temp state 

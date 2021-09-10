@@ -10,6 +10,8 @@ const isCommentOwner = require('../middleware/isCommentOwner')
 const udHandler = require('../functions/udHandler')
 const User = require('../schema/mongooseSchemas/userSchema')
 const docAuth = require('../middleware/docAuth')
+const querryHandler = require('../functions/querryHandler')
+const isAdmin = require('../middleware/isAdmin')
 
 //routes
 //------------post related section----- ->create->update->delete->getOne->getAll
@@ -53,8 +55,10 @@ router.get('/:id', auth , async(req , res) => {
         if(!post){
             return res.status(400).send('post doesnt exist')
         }
-        //set upvotes
-        
+        //reports
+        if(req.query.report == 1){
+            post.isReported = true
+        }
         let newPost = udHandler(req.query.vote , post , req.user)
         if(newPost === null) {
             //sending the post
@@ -75,8 +79,24 @@ router.get('/:id', auth , async(req , res) => {
 //---------------get all posts------------- (hold/advanced searching)
 router.get('/', auth , async(req , res) => {
     try{
-        const allPosts = Post.find()
-        res.status(200).send(allPosts)
+        //handling querries
+        const obj = querryHandler(req.query)
+        //sorting
+        //sort by newest
+        if(req.query.new==1){
+            const allPosts = await Post.find(obj).sort({
+                date: -1
+            })
+            res.status(200).send(allPosts)
+        }
+        //default sort , by udRatio
+        else {
+            const allPosts = await Post.find(obj).sort({
+                ud_rate: -1
+            })
+            res.status(200).send(allPosts)
+        }
+        
     }
     catch(err){
         res.status(500).json({message: err.message})
@@ -122,7 +142,7 @@ router.put('/:id/donator/:dId', [auth , docAuth] ,  async(req , res) => {
         donator.score += 100 ;
         donator = await donator.save() ;
         console.log(typeof(req.params.dId))
-        post =await Post.findByIdAndUpdate(req.params.id , {donator:req.params.dId} , {returnOriginal: false})
+        post =await Post.findByIdAndUpdate(req.params.id , {donator:req.params.dId , state:true} , {returnOriginal: false})
         res.status(201).send(post)
     }
     catch(err){
@@ -149,8 +169,6 @@ router.delete('/:id/donator/:dId', [auth , docAuth] ,  async(req , res) => {
         res.status(500).json({message: err.message})
     }
 })
-
-
 
 
 
@@ -201,9 +219,9 @@ router.delete('/:id/comment/:commentId', [auth , isCommentOwner] , async(req , r
     }
 })
 //---------------post module---------------
-router.put('/', [auth , isPostOwner] , async(req , res) => {
+router.put('/', [auth] , async(req , res) => {
     try{
-
+        res.send('no :)')
     }
     catch(err){
         res.status(500).json({message: err.message})

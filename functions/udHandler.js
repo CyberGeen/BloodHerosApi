@@ -4,23 +4,6 @@ const _ = require('lodash')
 module.exports = function udHandler(vote , post , user){
     if(vote == 1) {
         return up(post , user._id)
-        // //find if he voted
-        // let verificateur = _.find(post.up_votes ,  {_id: user._id })
-        // const temp = isUp(post.up_votes , user._id)
-        // console.log(temp)
-        // //let verificateur = post.up_votes.forEach(element => element._id == user._id);
-        // console.log(verificateur)
-        // if (!verificateur) {
-        //     //adding the upvote
-        //     post.up_votes =_.concat(post.up_votes , {_id:user._id})    
-        //     return post
-        // }
-        // else {
-        //     //adding the upvote
-        //     post.up_votes = _.pull(post.up_votes._id , user._id)
-        //     return post
-        // }
-        
     } else if (vote == -1 ){
         return down(post , user._id)
     }else {

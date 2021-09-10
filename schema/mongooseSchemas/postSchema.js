@@ -41,7 +41,8 @@ const postSchema = new mongoose.Schema({
         type:Array
     } ,
     ud_rate : {
-        type:Number
+        type:Number ,
+        default:0
     } ,
     date: {
         type: Date ,
@@ -49,6 +50,17 @@ const postSchema = new mongoose.Schema({
     } ,
     donator: {
         type:String
+    } ,
+    city: {
+        type: Number
+    } ,
+    state: {
+        type: Boolean ,
+        default:false
+    } , 
+    isReported: {
+        type:Boolean ,
+        default:false
     }
 })
 
