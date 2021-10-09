@@ -29,7 +29,10 @@ router.post('/signup' , async(req , res) => {
             const newUser = await user.save() ;
             //sending the token
             const token = user.genAuthToken();
-            return res.status(201).header('x-auth-token' , token).send(_.pick(newUser , ['_id']))
+            return res.status(201)
+            .header('x-auth-token' , token)
+            .header('access-control-expose-headers' , 'x-auth-token')
+            .send(_.pick(newUser , ['_id']))
         } }
     catch (err) {
         res.status(500).json({message: err.message})
@@ -47,7 +50,10 @@ router.post('/login' , async(req , res) => {
         if(!validPw) return res.status(400).send('wrong email or password')
         //sending the token
         const token = user.genAuthToken();
-        return res.status(202).header('x-auth-token' , token).json(user._id)
+        return res.status(202)
+        .header('x-auth-token' , token)
+        .header('access-control-expose-headers' , 'x-auth-token')
+        .json(user._id)
     } 
     catch (err){
         res.status(500).send(err.message)

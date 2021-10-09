@@ -3,6 +3,7 @@ require('dotenv').config();
 const express =  require('express');
 const Joi =  require('joi'); //class
 const mongoose = require('mongoose');
+const cors = require('cors')
 
 //db connection and configuration
 mongoose.connect(process.env.DATABASE_URL)
@@ -15,6 +16,11 @@ const app = express();
 
 //middleware
 app.use(express.json());
+//handling core problem (allowing acc from multiple server)
+//TODO: once deployed we specify who get it and what methodes they are allowed to use
+app.use(cors({
+    origin: "*"
+}))
 
 //routers
 //-----------users Router-------------------
@@ -46,4 +52,4 @@ app.get('/' , (req , res) => {
 //making the port dynamic depending on the enviement
 const port = process.env.PORT || 3000;
 //lessen to req (param , func runs when lessening)
-app.listen(port, () => console.log(`lessening on ${port}`));
+app.listen(port, () => console.log(`listening on port ${port}`));

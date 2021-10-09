@@ -7,12 +7,12 @@ const userSchema = Joi.object({
     password: Joi.string().min(5).required() ,
     email: Joi.string().required().email() ,
     gender: Joi.string().required() ,
-    adress: Joi.number().min(1) ,
+    city: Joi.number().min(1) ,
     blood_type: Joi.string(),
-    last_donation: Joi.date(),
+    last_donation: Joi.date().allow(""),
     emergency_info: {
-        emergencyCall: Joi.string() ,
-        emergencyInfo: Joi.string() 
+        emergencyCall: Joi.string().allow("") ,
+        emergencyInfo: Joi.string().allow("") 
     },
     browser_language: Joi.string()
 });

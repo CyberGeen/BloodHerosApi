@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema({
         required: true ,
         enum: ['male' , 'female']
     } ,
-    adress: {
+    city: {
         type: Number 
     } ,
     browser_language: {
