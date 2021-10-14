@@ -183,7 +183,7 @@ router.post('/:id/comment', [auth ] , async(req , res) => {
         req.body.postedBy = req.user._id
         //pushing a comment
         const newComment = await Post.findByIdAndUpdate(req.params.id , {$push: {comments:req.body}} , {returnOriginal: false} )
-        res.send(newComment)
+        res.send(newComment.comments)
     }
     catch(err){
         res.status(500).json({message: err.message})
