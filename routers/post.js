@@ -212,7 +212,7 @@ router.delete('/:id/comment/:commentId', [auth , isCommentOwner] , async(req , r
         //updating
         const newComment = await Post.findOneAndUpdate({"comments._id":req.params.commentId} , {$pull: {"comments":{_id:req.params.commentId}}} , {returnOriginal: false})
         //const updatedPost = await Post.findById(req.params.id)
-        res.send(newComment)
+        res.send({"deleted":true})
     }
     catch(err){
         res.status(500).json({message: err.message})
