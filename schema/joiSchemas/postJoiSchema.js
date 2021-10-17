@@ -7,7 +7,7 @@ const postSchema = Joi.object({
     description: Joi.string().min(3).required(),
     blood_type: Joi.string(),
     tags: Joi.string().valid('urgent' , 'other') ,
-    image: Joi.string() ,
+    image: Joi.string().allow("") ,
     posted_by: Joi.string() ,
     city: Joi.number()
 })
