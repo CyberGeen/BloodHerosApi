@@ -9,6 +9,7 @@ module.exports = async function(req , res , next){
     else{
         //find post
         let post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({"error":"post doesnt exist"})
         //verifying post ownership before updating
         if(req.user._id != post.posted_by) return res.status(400).json({"error":"access denied"});
         next();
