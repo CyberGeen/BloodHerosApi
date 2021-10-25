@@ -61,6 +61,9 @@ const postSchema = new mongoose.Schema({
     isReported: {
         type:Boolean ,
         default:false
+    } ,
+    until_donation:{
+        type: Date
     }
 })
 

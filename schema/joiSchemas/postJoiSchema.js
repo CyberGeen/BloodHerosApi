@@ -9,7 +9,8 @@ const postSchema = Joi.object({
     tags: Joi.string().valid('urgent' , 'other') ,
     image: Joi.string().allow("") ,
     posted_by: Joi.string() ,
-    city: Joi.number()
+    city: Joi.number() ,
+    until_donation: Joi.date().allow("")
 })
 
 //export 
