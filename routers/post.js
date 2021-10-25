@@ -60,16 +60,16 @@ router.get('/:id', auth , async(req , res) => {
         if(req.query.report == 1){
             post.isReported = true
             let newPost = await post.save()
-            res.send(newPost)
+            return res.status(201).send(newPost)
         }
         if(newPost === null) {
             //sending the post
-            res.send(post)
+            return res.send(post)
         } else {
             //saving changes
             newPost.ud_rate = newPost.handleUdRate()
             newPost = await newPost.save();
-            res.send(newPost)
+            return res.status(201).send(newPost)
         }
         
     }
