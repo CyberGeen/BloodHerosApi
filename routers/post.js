@@ -55,11 +55,13 @@ router.get('/:id', auth , async(req , res) => {
         if(!post){
             return res.status(400).send('post doesnt exist')
         }
+        let newPost = udHandler(req.query.vote , post , req.user)
         //reports
         if(req.query.report == 1){
             post.isReported = true
+            let newPost = await post.save()
+            res.send(newPost)
         }
-        let newPost = udHandler(req.query.vote , post , req.user)
         if(newPost === null) {
             //sending the post
             res.send(post)
