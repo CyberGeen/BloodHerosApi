@@ -37,9 +37,9 @@ router.post('/doc' , [auth , isAdmin] ,async (req , res) => {
 //---------------delete admin----------------
 router.delete('/admin/:id' , [auth , isAdmin] ,async (req , res) => {
     try{
-        const newAdmin =await User.findByIdAndUpdate(req.params.id , {role:null} , {returnOriginal:false})
-        if(newAdmin===null) res.status(400).json({"error":"invalide id"})
-        res.status(201).send(newAdmin)
+        const newAdmin =await User.findByIdAndUpdate(req.params.id , {role:null} )
+        if(newAdmin===null) return res.status(400).json({"error":"invalide id"})
+        return res.status(201).send(newAdmin)
     } catch (err){
         res.status(500).json(err)
     }
@@ -47,9 +47,9 @@ router.delete('/admin/:id' , [auth , isAdmin] ,async (req , res) => {
 //---------------delete doc----------------
 router.delete('/doc/:id' , [auth , isAdmin] ,async (req , res) => {
     try{
-        const newAdmin =await User.findByIdAndUpdate(req.params.id , {role:null} , {returnOriginal:false})
-        if(newAdmin===null) res.status(400).json({"error":"invalide id"})
-        res.status(201).send(newAdmin)
+        const newAdmin =await User.findByIdAndUpdate(req.params.id , {role:null} )
+        if(newAdmin===null) return res.status(400).json({"error":"invalide id"})
+        return res.status(201).send(newAdmin)
     } catch (err){
         res.status(500).json(err)
     }
