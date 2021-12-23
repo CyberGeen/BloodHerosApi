@@ -65,5 +65,14 @@ router.get('/me' , auth ,async (req , res)=> {
     res.status(200).send(user)
 } ) 
 
+//give basic info of the user 
+router.get('/general/:id' , auth , async(req , res) => {
+    try {
+        const user = await User.findById(req.params.id).select('name blood_type')
+        res.status(200).send(user)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+} )
 
 module.exports = router ;
