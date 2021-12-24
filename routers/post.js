@@ -93,9 +93,31 @@ router.get('/', auth , async(req , res) => {
         }
         //default sort , by udRatio
         else {
-            const allPosts = await Post.find(obj).sort({
+            let allPosts = await Post.find(obj).sort({
                 ud_rate: -1
             })
+            allPosts.forEach( (post) => {
+                // post.comments = post.comments.map( (comment) => {
+                //     const user = await User.findById(comment._id).select('name blood_type')
+                //     comment.postedBy = user
+                //     return user
+                // } )
+                let newComments = []
+                if(post.comments.length > 0 ) {
+                    post.comments.forEach(comment => {
+                        User.findById(comment._id).select('name blood_type')
+                            .then( res => {
+                                comment.postedBy = res.data
+                                newComments.push(newComments)
+                            } ).catch(err => console.log(err) )
+                    })
+                }
+                if(newComments.length === post.comments.length ){
+                    post.comments = newComments
+                }
+                
+                //return post
+            } )
             res.status(200).send(allPosts)
         }
         
@@ -184,8 +206,33 @@ router.post('/:id/comment', [auth ] , async(req , res) => {
         //add posted by section
         req.body.postedBy = req.user._id
         //pushing a comment
-        const newComment = await Post.findByIdAndUpdate(req.params.id , {$push: {comments:req.body}} , {returnOriginal: false} )
-        res.send(newComment.comments)
+        let newComment = await Post.findByIdAndUpdate(req.params.id , {$push: {comments:req.body}} , {returnOriginal: false} )
+        newComment = newComment.comments
+        console.log('////////////////////////')
+        //console.log(newComment)
+        let temp = []
+        newComment.forEach(comment => {
+            //console.log(comment)
+            User.findById(comment.postedBy).select('name blood_type').then( data => {
+                                // from BSON (nosql form when sending data) to string to object
+                                data = JSON.stringify(data)
+                                data = JSON.parse(data)
+                                comment = JSON.stringify(comment)
+                                comment = JSON.parse(comment)
+                                comment.postedBy =  data
+                                temp.push(comment)
+                                if(temp.length === newComment.length){
+                                    res.send(temp)
+                                }  
+                                //newComments.push(newComments)
+                            } ).catch(err => console.log(err) )
+                    
+                        
+                        })
+                        
+                        console.log(newComment.length)
+                              
+        
     }
     catch(err){
         res.status(500).json({message: err.message})
@@ -232,3 +279,31 @@ router.put('/', [auth] , async(req , res) => {
 
 //exports 
 module.exports = router ;
+
+
+
+/* 
+allPosts.forEach( (post) => {
+                // post.comments = post.comments.map( (comment) => {
+                //     const user = await User.findById(comment._id).select('name blood_type')
+                //     comment.postedBy = user
+                //     return user
+                // } )
+                let newComments = []
+                if(post.comments.length > 0 ) {
+                    post.comments.forEach(comment => {
+                        User.findById(comment._id).select('name blood_type')
+                            .then( res => {
+                                comment.postedBy = res.data
+                                newComments.push(newComments)
+                            } ).catch(err => console.log(err) )
+                    })
+                }
+                if(newComments.length === post.comments.length ){
+                    post.comments = newComments
+                }
+                
+                //return post
+            } )
+
+*/
