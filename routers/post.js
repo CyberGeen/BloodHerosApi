@@ -51,7 +51,7 @@ router.put('/:id', [auth , isPostOwner] , async(req , res) => {
 //---------------get a post----------------
 router.get('/:id', auth , async(req , res) => {
     try{
-        const post = await Post.findById(req.params.id)
+        let post = await Post.findById(req.params.id)
         if(!post){
             return res.status(400).send('post doesnt exist')
         }
@@ -64,7 +64,15 @@ router.get('/:id', auth , async(req , res) => {
         }
         if(newPost === null) {
             //sending the post
-            return res.send(post)
+            post = JSON.stringify(post)
+            post = JSON.parse(post)
+            return User.findById(post.posted_by).select('name blood_type').then( (data) => {
+                data = JSON.stringify(data)
+                data = JSON.parse(data)
+                post.posted_by = data
+                res.send(post)
+            } ).catch( err => console.log(err) )
+            
         } else {
             //saving changes
             newPost.ud_rate = newPost.handleUdRate()
@@ -96,31 +104,24 @@ router.get('/', auth , async(req , res) => {
             let allPosts = await Post.find(obj).sort({
                 ud_rate: -1
             })
+            let newPosts = []
             allPosts.forEach( (post) => {
-                // post.comments = post.comments.map( (comment) => {
-                //     const user = await User.findById(comment._id).select('name blood_type')
-                //     comment.postedBy = user
-                //     return user
-                // } )
-                let newComments = []
-                if(post.comments.length > 0 ) {
-                    post.comments.forEach(comment => {
-                        User.findById(comment._id).select('name blood_type')
-                            .then( res => {
-                                comment.postedBy = res.data
-                                newComments.push(newComments)
-                            } ).catch(err => console.log(err) )
-                    })
-                }
-                if(newComments.length === post.comments.length ){
-                    post.comments = newComments
-                }
-                
+                post = JSON.stringify(post)
+                post = JSON.parse(post)
+                let newPost = post
+                User.findById(post.posted_by).select('name blood_type')
+                    .then( (poster) => {
+                        poster = JSON.stringify(poster)
+                        poster = JSON.parse(poster)
+                        newPost.posted_by = {_id: poster._id , name: poster.name ,blood_type: poster.blood_type }
+                        newPosts.push(newPost)
+                        if(newPosts.length === allPosts.length ){
+                            res.status(200).send(newPosts)
+                        }
+                    }  ).catch(err => console.log(err))
                 //return post
             } )
-            res.status(200).send(allPosts)
         }
-        
     }
     catch(err){
         res.status(500).json({message: err.message})
@@ -130,8 +131,6 @@ router.get('/', auth , async(req , res) => {
 //---------------delete a post-------------
 router.delete('/:id', [auth , isPostOwner] , async(req , res) => {
     try{
-        //verification
-        //deleting
         const checker = await Post.findByIdAndDelete(req.params.id)
         res.send(checker)
     }
@@ -208,7 +207,6 @@ router.post('/:id/comment', [auth ] , async(req , res) => {
         //pushing a comment
         let newComment = await Post.findByIdAndUpdate(req.params.id , {$push: {comments:req.body}} , {returnOriginal: false} )
         newComment = newComment.comments
-        console.log('////////////////////////')
         //console.log(newComment)
         let temp = []
         newComment.forEach(comment => {
@@ -267,6 +265,36 @@ router.delete('/:id/comment/:commentId', [auth , isCommentOwner] , async(req , r
         res.status(500).json({message: err.message})
     }
 })
+//---------------get comments--------------
+router.get('/:id/comment', [auth ] , async(req , res) => {
+    try {
+        Post.findById(req.params.id)
+            .then((post) => {
+
+                newComment = post.comments
+                //console.log(newComment)
+                let temp = []
+                newComment.forEach(comment => {
+                    //console.log(comment)
+                    User.findById(comment.postedBy).select('name blood_type').then( data => {
+                                        // from BSON (nosql form when sending data) to string to object
+                                        data = JSON.stringify(data)
+                                        data = JSON.parse(data)
+                                        comment = JSON.stringify(comment)
+                                        comment = JSON.parse(comment)
+                                        comment.postedBy =  data
+                                        temp.push(comment)
+                                        if(temp.length === newComment.length){
+                                            res.send(temp)
+                                        }  
+                                        //newComments.push(newComments)
+                                    } ).catch(err => console.log(err) )
+                                })
+            }).catch(err => res.status(500).json({message: err}) )
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+} )
 //---------------post module---------------
 router.put('/', [auth] , async(req , res) => {
     try{
