@@ -25,8 +25,19 @@ router.post('/create', auth , async(req , res) => {
         //creating post
         const post = new Post(validate.value)
         post.posted_by=req.user._id
-        const newPost = await post.save()
-        res.status(201).send(newPost)
+        let newPost = await post.save()
+        // adding info of the post owner before sending it for the new version of the API
+        User.findById(newPost.posted_by).select('name blood_type')
+                    .then( (poster) => {
+                        newPost = JSON.stringify(newPost)
+                        newPost = JSON.parse(newPost)
+
+                        poster = JSON.stringify(poster)
+                        poster = JSON.parse(poster)
+                        console.log(poster)
+                        newPost.posted_by = {_id: poster._id , name: poster.name ,blood_type: poster.blood_type }
+                        res.status(201).send(newPost)
+                    }  ).catch(err => console.log(err))
     }
     catch(err){
         res.status(500).json({message: err.message})
@@ -106,6 +117,7 @@ router.get('/', auth , async(req , res) => {
             })
             let newPosts = []
             allPosts.forEach( (post) => {
+
                 post = JSON.stringify(post)
                 post = JSON.parse(post)
                 let newPost = post
@@ -138,6 +150,7 @@ router.delete('/:id', [auth , isPostOwner] , async(req , res) => {
         res.status(500).json({message: err.message})
     }
 })
+
 //---------------update a post-------------
 router.put('/:id', [auth , isPostOwner] , async(req , res) => {
     try{
