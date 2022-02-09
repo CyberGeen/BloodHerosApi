@@ -6,6 +6,7 @@ const userJoiSchema = require('../schema/joiSchemas/userJoiSchema')
 const bcrypt = require('bcrypt')
 const _ = require('lodash')
 const auth = require('../middleware/auth')
+const { valid } = require('joi')
 
 
 
@@ -15,7 +16,7 @@ const auth = require('../middleware/auth')
 //sign up 
 router.post('/signup' , async(req , res) => {
     try {
-        let validate = await userJoiSchema.validate(req.body)
+        let validate = userJoiSchema.validate(req.body)
         if(validate.error) {
             return res.status(400).send(validate.error.details) }
         const isValid = await User.findOne({email:req.body.email})
@@ -70,6 +71,46 @@ router.get('/general/:id' , auth , async(req , res) => {
     try {
         const user = await User.findById(req.params.id).select('name blood_type')
         res.status(200).send(user)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+} )
+
+// update user info 
+router.put('/update' , auth , async(req , res) => {
+    try {
+        
+        let oldUser = await User.findById(req.user._id)
+        
+        // check of the user sent the coorect password to update his info
+        
+        const validPw = await bcrypt.compare(req.body.password , oldUser.password );
+        if(!validPw) return res.status(400).send('wrong password')
+        
+        // in case they try to change props while they arent allowed to 
+        req.body.role = oldUser.role
+        req.body.verified = oldUser.verified
+        req.body.last_donation = oldUser.last_donation
+        req.body.posts = oldUser.posts
+        req.body.score = oldUser.score
+
+        // any other values not accepted will automatically be rejected
+
+        //delete the password in req.body so it doesnt get pushed into the DB
+        delete req.body.password
+
+        if(req.body.newPassword){
+            const hashPw = await bcrypt.hash(req.body.newPassword , 10);
+            req.body.password = hashPw
+        }
+        if(req.body.email){
+            //they gotta verify their new email
+            req.body.verified = false
+        }
+        //res.send(req.body)
+        const user = await User.findByIdAndUpdate(req.user._id , req.body , {returnOriginal:false} ) 
+        res.send(user)
+
     } catch (err) {
         res.status(500).send(err.message)
     }
