@@ -85,8 +85,16 @@ router.put('/update' , auth , async(req , res) => {
         // check of the user sent the coorect password to update his info
         
         const validPw = await bcrypt.compare(req.body.password , oldUser.password );
-        if(!validPw) return res.status(400).send('wrong password')
+        if(!validPw) return res.status(400).send({message : 'wrong password'})
         
+        if(req.body.email !== oldUser.email ){
+            const isValid = await User.findOne({email:req.body.email})
+            if (isValid){
+                return res.status(400).send({"message":"email already used"}) 
+            }
+        }
+
+
         // in case they try to change props while they arent allowed to 
         req.body.role = oldUser.role
         req.body.verified = oldUser.verified
