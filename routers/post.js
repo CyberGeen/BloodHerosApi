@@ -26,6 +26,14 @@ router.post('/create', auth , async(req , res) => {
         const post = new Post(validate.value)
         post.posted_by=req.user._id
         let newPost = await post.save()
+
+        // updating posts owned by this person
+        let mrPoster = await User.findById(req.user._id)
+
+        mrPoster.posts.push(post._id)
+        let newidk = await User.findByIdAndUpdate(req.user._id , mrPoster , {returnOriginal:false} )
+        console.log(newidk)
+
         // adding info of the post owner before sending it for the new version of the API
         User.findById(newPost.posted_by).select('name blood_type')
                     .then( (poster) => {
@@ -34,7 +42,6 @@ router.post('/create', auth , async(req , res) => {
 
                         poster = JSON.stringify(poster)
                         poster = JSON.parse(poster)
-                        console.log(poster)
                         newPost.posted_by = {_id: poster._id , name: poster.name ,blood_type: poster.blood_type }
                         res.status(201).send(newPost)
                     }  ).catch(err => console.log(err))

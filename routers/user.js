@@ -124,4 +124,27 @@ router.put('/update' , auth , async(req , res) => {
     }
 } )
 
+// delete acc
+router.delete( '/delete' , auth , async (req , res ) => {
+    try {
+
+        const currentUser = await User.findById(req.user._id)
+        // confirm password
+        const validPw = await bcrypt.compare(req.body.password , currentUser.password );
+        if(!validPw) return res.status(400).send({message : 'wrong password'})
+
+        const newData = {
+            name : "Deleted Account" ,
+            email : "deleted@BH.com" ,
+            password : "deletedFullyCantBeLoggedInAgain"
+        }
+        //we cant delete it fully because request for its id will still be happening either by comments or posts
+        // filtering all the db from the user mark will be too much for such a lil effect
+        await User.findByIdAndUpdate(req.user._id , newData , {returnOriginal:false} )
+        res.status(204).send()
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+} )
+
 module.exports = router ;
