@@ -116,7 +116,7 @@ router.put('/update' , auth , async(req , res) => {
             req.body.verified = false
         }
         //res.send(req.body)
-        const user = await User.findByIdAndUpdate(req.user._id , req.body , {returnOriginal:false} ) 
+        const user = await User.findByIdAndUpdate(req.user._id , req.body , {returnOriginal:false} ).select('-password')
         res.send(user)
 
     } catch (err) {
@@ -142,6 +142,22 @@ router.delete( '/delete' , auth , async (req , res ) => {
         // filtering all the db from the user mark will be too much for such a lil effect
         await User.findByIdAndUpdate(req.user._id , newData , {returnOriginal:false} )
         res.status(204).send()
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+} )
+
+// emergency data 
+router.get( '/emergency/:id' , auth , async(req , res) => {
+    try {
+        let wantedUser = await User.findById(req.params.id).select('-password -email -score -posts')
+        if(!wantedUser){
+            return res.status(404).send({message:"user not found"})
+        }
+        if(req.user.role == null ){
+            wantedUser.emergency_info.emergencyCall = null
+        }
+        return res.status(200).send(wantedUser)
     } catch (err) {
         res.status(500).send(err.message)
     }
